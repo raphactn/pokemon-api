@@ -7,7 +7,7 @@ import { Text } from '@chakra-ui/react'
 import { useToast, useDisclosure } from '@chakra-ui/react'
 import { Input, InputGroup, Button, InputRightElement, InputLeftAddon, Flex, Divider } from '@chakra-ui/react'
 import { SearchIcon, SmallCloseIcon } from '@chakra-ui/icons'
-import { Tabs, TabList, TabPanels, Tab, TabPanel, Progress } from '@chakra-ui/react'
+import { Tabs, TabList, TabPanels, Tab, TabPanel, Progress, Select } from '@chakra-ui/react'
 import {
   Modal,
   ModalOverlay,
@@ -27,14 +27,15 @@ export default function Home() {
   const [value, setValue] = useState('');
   const [showAll, setShowAll] = useState(false);
   const [offset, setOffSet] = useState(0);
+  const [limit, setLimit] = useState(8);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
   useEffect(() => {
-    api.get(`/pokemon?limit=12&offset=${offset}`)
+    api.get(`/pokemon?limit=${limit}&offset=${offset}`)
       .then(response => setData(response.data.results))
       .catch(err => console.log(err))
-  }, [showAll, offset])
+  }, [showAll, offset, limit])
 
 
   const handleSearch = () => {
@@ -81,7 +82,6 @@ export default function Home() {
       </Wrap>
     )
   };
-
 
   return (
     <div>
@@ -197,41 +197,49 @@ export default function Home() {
         <Center>
           <SimpleGrid columns={{ base: 2, md: 4 }} spacing={[5, 10]}>
             {data.length > 1 ? data.map(item =>
-              <Box borderBottom={'8px solid #feca1b'} bg={'#feca1b54'} p={5} borderRadius={10} _hover={{ transform: 'scale(1.05)', transition: 'all 350ms' }} onClick={(e) => handleOpenModal(item?.url?.substr(-3).replaceAll('/', ""))}>
+              <Box borderBottom={'8px solid #feca1b'} bg={'#feca1b54'} p={5} borderRadius={10} _hover={{ transform: 'scale(1.05)', transition: 'all 350ms' }} onClick={(e) => handleOpenModal(item?.url?.replace("https://pokeapi.co/api/v2/pokemon/", "").replace('/', ""))}>
                 <Image
-                  src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${item?.url?.substr(-3).replaceAll('/', "")}.png`}
+                  src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${item?.url?.replace("https://pokeapi.co/api/v2/pokemon/", "").replace('/', "")}.png`}
                   w={150}
                   cursor='pointer'
                   alt={item?.name}
                   onClick={onOpen}
                 />
-                <Text fontSize='1xl' textAlign={'center'} marginTop={2}>#{item?.url?.substr(-3).replaceAll('/', "")}</Text>
+                <Text fontSize='1xl' textAlign={'center'} marginTop={2}>#{item?.url?.replace("https://pokeapi.co/api/v2/pokemon/", "").replace('/', "")}</Text>
                 <Text fontSize='2xl' textAlign={'center'}>{item?.name}</Text>
               </Box>
             ) : (
-              <Box borderBottom={'8px solid #feca1b'} bg={'#feca1b54'} p={5} borderRadius={10} _hover={{ transform: 'scale(1.1)' }} onClick={(e) => handleOpenModal(data?.url?.substr(-3).replaceAll('/', ""))}>
+              <Box borderBottom={'8px solid #feca1b'} bg={'#feca1b54'} p={5} borderRadius={10} _hover={{ transform: 'scale(1.1)' }} onClick={(e) => handleOpenModal(data?.url?.replace("https://pokeapi.co/api/v2/pokemon-species/", "").replace('/', ""))}>
                 <Image
-                  src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${data?.url?.substr(-3).replaceAll('/', "")}.png`}
+                  src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${data?.url?.replace("https://pokeapi.co/api/v2/pokemon-species/", "").replace('/', "")}.png`}
                   w={150}
                   cursor='pointer'
                   alt={data?.name}
                   onClick={onOpen}
                 />
-                <Text fontSize='1xl' textAlign={'center'} marginTop={2}>#{data?.url?.substr(-3).replaceAll('/', "")}</Text>
+                <Text fontSize='1xl' textAlign={'center'} marginTop={2}>#{data?.url?.replace("https://pokeapi.co/api/v2/pokemon-species/", "").replace('/', "")}</Text>
                 <Text fontSize='2xl' textAlign={'center'}>{data?.name}</Text>
               </Box>
             )}
           </SimpleGrid>
         </Center>
       </Box>
+      <Text textAlign={'center'} marginTop={5}>Page: {offset + 1}</Text>
       <Center margin={30}>
-        <Box>
-          <Text textAlign={'center'}>Page: {offset + 1}</Text>
-          <Flex gap={5} marginTop={5}>
+        <Flex alignItems={'baseline'}>
+          <Flex gap={5}>
             <Button bg={'#feca1b54'} _hover={{ bg: '#feca1b' }} disabled={offset == 0 ? true : false} onClick={(e) => setOffSet(offset - 1)}>Previous</Button>
             <Button bg={'#feca1b54'} _hover={{ bg: '#feca1b' }} onClick={(e) => setOffSet(offset + 1)}>Next</Button>
           </Flex>
-        </Box>
+          <Select size='sm' marginLeft={5} variant='flushed' value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
+            <option value={4}>4</option>
+            <option value={8}>8</option>
+            <option value={12}>12</option>
+            <option value={16}>16</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </Select>
+        </Flex>
       </Center>
       <Box bg={'#ef5350'} textAlign={'center'} p={5} marginTop={50}>
         <Text>Development by: Raphael Caetano</Text>
